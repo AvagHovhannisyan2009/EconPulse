@@ -9,6 +9,16 @@ jobs:
   run-econpulse:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug secret presence (safe)
+        env:
+          CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "ECONPULSE_CRON_SECRET is EMPTY"
+            exit 1
+          fi
+          echo "ECONPULSE_CRON_SECRET is set (length: ${#CRON_SECRET})"
+
       - name: Invoke EconPulse Edge Function (SMOKE)
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
