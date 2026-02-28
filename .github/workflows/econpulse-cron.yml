@@ -1,28 +1,9 @@
-name: EconPulse Cron
-
-on:
-  workflow_dispatch:
-
-jobs:
-  smoke-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate secrets exist
-        env:
-          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
-        run: |
-          if [ -z "$PROJECT_REF" ]; then echo "SUPABASE_PROJECT_REF is empty"; exit 1; fi
-          if [ -z "$CRON_SECRET" ]; then echo "ECONPULSE_CRON_SECRET is empty"; exit 1; fi
-          echo "OK: secrets present (not printing)."
-
-      - name: Smoke invoke edge function
-        env:
-          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
-        run: |
-          curl -i -X POST "https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent?mode=smoke" \
-            -H "Authorization: Bearer test" \
-            -H "X-CRON-SECRET: ${CRON_SECRET}" \
-            -H "Content-Type: application/json" \
-            -d '{}'
+- name: Debug secret length
+  env:
+    CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
+  run: |
+    if [ -z "$CRON_SECRET" ]; then
+      echo "ECONPULSE_CRON_SECRET is EMPTY"
+      exit 1
+    fi
+    echo "ECONPULSE_CRON_SECRET length = ${#CRON_SECRET}"
