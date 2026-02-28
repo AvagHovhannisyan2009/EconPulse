@@ -8,8 +8,9 @@ on:
 jobs:
   run-econpulse:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Invoke econpulse-ai-agent (smoke mode)
+      - name: Invoke econpulse-ai-agent (NORMAL MODE)
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
@@ -18,28 +19,25 @@ jobs:
           set -euo pipefail
 
           if [ -z "${PROJECT_REF}" ]; then
-            echo "SUPABASE_PROJECT_REF is empty" >&2
+            echo "SUPABASE_PROJECT_REF is empty"
             exit 1
           fi
 
           if [ -z "${CRON_SECRET}" ]; then
-            echo "ECONPULSE_CRON_SECRET is empty" >&2
+            echo "ECONPULSE_CRON_SECRET is empty"
             exit 1
           fi
 
           if [ -z "${ANON_KEY}" ]; then
-            echo "SUPABASE_ANON_KEY is empty" >&2
+            echo "SUPABASE_ANON_KEY is empty"
             exit 1
           fi
 
-          echo "PROJECT_REF length: ${#PROJECT_REF}"
-          echo "CRON_SECRET length: ${#CRON_SECRET}"
-          echo "ANON_KEY length: ${#ANON_KEY}"
+          URL="https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent"
 
-          URL="https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent?mode=smoke"
+          echo "Calling: $URL"
 
-          # Print full response (status line + headers + body)
-          curl -iS --max-time 30 -X POST "$URL" \
+          curl -iS --max-time 60 -X POST "$URL" \
             -H "Content-Type: application/json" \
             -H "apikey: ${ANON_KEY}" \
             -H "Authorization: Bearer ${ANON_KEY}" \
