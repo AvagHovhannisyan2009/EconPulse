@@ -13,6 +13,7 @@ jobs:
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
+          ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           set -euo pipefail
 
@@ -26,10 +27,17 @@ jobs:
             exit 1
           fi
 
+          if [ -z "${ANON_KEY}" ]; then
+            echo "SUPABASE_ANON_KEY is empty"
+            exit 1
+          fi
+
           URL="https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent"
           echo "Calling: $URL"
 
           curl -iS --max-time 140 -X POST "$URL" \
             -H "Content-Type: application/json" \
+            -H "apikey: ${ANON_KEY}" \
+            -H "Authorization: Bearer ${ANON_KEY}" \
             -H "X-CRON-SECRET: ${CRON_SECRET}" \
             -d '{}'
