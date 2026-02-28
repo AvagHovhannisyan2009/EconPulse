@@ -1,21 +1,6 @@
-name: EconPulse Cron
-
-on:
-  schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
-
-jobs:
-  run-econpulse:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Invoke EconPulse Edge Function
-        env:
-          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
-        run: |
-          curl -i -X POST "https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent" \
-            -H "Authorization: Bearer test" \
-            -H "X-CRON-SECRET: ${CRON_SECRET}" \
-            -H "Content-Type: application/json" \
-            -d '{}'
+run: |
+  curl -i -X POST "https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent?mode=smoke" \
+    -H "Authorization: Bearer test" \
+    -H "X-CRON-SECRET: ${CRON_SECRET}" \
+    -H "Content-Type: application/json" \
+    -d '{}'
