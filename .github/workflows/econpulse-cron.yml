@@ -9,6 +9,15 @@ jobs:
   run-econpulse:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate secrets exist
+        env:
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
+        run: |
+          if [ -z "$PROJECT_REF" ]; then echo "SUPABASE_PROJECT_REF is empty"; exit 1; fi
+          if [ -z "$CRON_SECRET" ]; then echo "ECONPULSE_CRON_SECRET is empty"; exit 1; fi
+          echo "Secrets look present (not printing values)."
+
       - name: Invoke EconPulse Edge Function (SMOKE MODE)
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
