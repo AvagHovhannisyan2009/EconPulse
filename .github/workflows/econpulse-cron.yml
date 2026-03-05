@@ -2,42 +2,61 @@ name: EconPulse Cron
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *"   # runs every 30 minutes
+  workflow_dispatch:         # allows manual run from GitHub
 
 jobs:
   run-econpulse:
     runs-on: ubuntu-latest
+
     steps:
       - name: Invoke econpulse-ai-agent (NORMAL MODE)
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
           ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
         run: |
           set -euo pipefail
 
+          echo "Starting EconPulse invocation..."
+
           if [ -z "${PROJECT_REF}" ]; then
-            echo "SUPABASE_PROJECT_REF is empty"
+            echo "ERROR: SUPABASE_PROJECT_REF is empty"
             exit 1
           fi
 
           if [ -z "${CRON_SECRET}" ]; then
-            echo "ECONPULSE_CRON_SECRET is empty"
+            echo "ERROR: ECONPULSE_CRON_SECRET is empty"
             exit 1
           fi
 
           if [ -z "${ANON_KEY}" ]; then
-            echo "SUPABASE_ANON_KEY is empty"
+            echo "ERROR: SUPABASE_ANON_KEY is empty"
             exit 1
           fi
 
           URL="https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent"
-          echo "Calling: $URL"
 
-          curl -iS --max-time 140 -X POST "$URL" \
+          echo "Calling Edge Function:"
+          echo "$URL"
+
+          RESPONSE=$(curl -sS --max-time 120 -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST "$URL" \
             -H "Content-Type: application/json" \
             -H "apikey: ${ANON_KEY}" \
             -H "Authorization: Bearer ${ANON_KEY}" \
             -H "X-CRON-SECRET: ${CRON_SECRET}" \
-            -d '{}'
+            -d '{}')
+
+          echo "Response:"
+          echo "$RESPONSE"
+
+          STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d':' -f2)
+
+          if [ "$STATUS" != "200" ]; then
+            echo "ERROR: Function returned HTTP $STATUS"
+            exit 1
+          fi
+
+          echo "EconPulse run completed successfully."
