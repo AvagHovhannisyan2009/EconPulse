@@ -2,8 +2,8 @@ name: EconPulse Cron
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # runs every 30 minutes
-  workflow_dispatch:         # allows manual run from GitHub
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 jobs:
   run-econpulse:
@@ -41,7 +41,7 @@ jobs:
           echo "Calling Edge Function:"
           echo "$URL"
 
-          RESPONSE=$(curl -sS --max-time 120 -w "\nHTTP_STATUS:%{http_code}" \
+          RESPONSE=$(curl -sS --max-time 140 -w "\nHTTP_STATUS:%{http_code}" \
             -X POST "$URL" \
             -H "Content-Type: application/json" \
             -H "apikey: ${ANON_KEY}" \
