@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Call econpulse-ai-agent with status output
+      - name: Call econpulse-ai-agent with Supabase auth and body secret
         run: |
           echo "Testing econpulse-ai-agent..."
 
@@ -16,8 +16,10 @@ jobs:
 
           http_code=$(curl -sS -o "$http_response" -w "%{http_code}" -X POST "https://vevebvrssinajsmijpoy.functions.supabase.co/econpulse-ai-agent" \
             -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -d '{
-              "secret": "42e2311b182f56a2e2cea5c8e00147bd48b7deada22e5",
+              "secret": "${{ secrets.ECONPULSE_CRON_SECRET }}",
               "smoke": true,
               "sources": [
                 {
@@ -35,9 +37,9 @@ jobs:
           echo "HTTP status: $http_code"
           echo "Response body:"
           cat "$http_response"
+          echo ""
 
           if [ "$http_code" -ge 400 ]; then
-            echo ""
             echo "Request failed."
             exit 1
           fi
