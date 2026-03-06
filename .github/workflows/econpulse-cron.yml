@@ -16,24 +16,21 @@ jobs:
 
           http_code=$(curl -sS -o "$http_response" -w "%{http_code}" -X POST "https://vevebvrssinajsmijpoy.functions.supabase.co/econpulse-ai-agent" \
             -H "Content-Type: application/json" \
-            -d "$(cat <<EOF
-          {
-            "secret": "${{ secrets.ECONPULSE_CRON_SECRET }}",
-            "smoke": true,
-            "sources": [
-              {
-                "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
-                "limit": 3
-              },
-              {
-                "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
-                "limit": 3
-              }
-            ],
-            "model": "gpt2"
-          }
-          EOF
-          )")
+            -d '{
+              "secret": "42e2311b182f56a2e2cea5c8e00147bd48b7deada22e5",
+              "smoke": true,
+              "sources": [
+                {
+                  "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+                  "limit": 3
+                },
+                {
+                  "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+                  "limit": 3
+                }
+              ],
+              "model": "gpt2"
+            }')
 
           echo "HTTP status: $http_code"
           echo "Response body:"
