@@ -1,29 +1,41 @@
-- name: Test econpulse-ai-agent
-  env:
-    PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-    CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
-    ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-  run: |
-    set -euo pipefail
+name: EconPulse Cron
 
-    echo "Testing econpulse-ai-agent..."
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
-    http_response=$(mktemp)
+jobs:
+  test-edge-function:
+    runs-on: ubuntu-latest
 
-    http_code=$(curl -sS -o "$http_response" -w "%{http_code}" -X POST "https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent" \
-      -H "Content-Type: application/json" \
-      -H "Authorization: Bearer ${ANON_KEY}" \
-      -H "apikey: ${ANON_KEY}" \
-      -d "{
-        \"secret\": \"${CRON_SECRET}\"
-      }")
+    steps:
+      - name: Test econpulse-ai-agent
+        env:
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
+          ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
-    echo "HTTP status: $http_code"
-    echo "Response body:"
-    cat "$http_response"
-    echo ""
+        run: |
+          set -euo pipefail
 
-    if [ "$http_code" -ge 400 ]; then
-      echo "Request failed."
-      exit 1
-    fi
+          echo "Testing econpulse-ai-agent..."
+
+          http_response=$(mktemp)
+
+          http_code=$(curl -sS -o "$http_response" -w "%{http_code}" \
+            -X POST "https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${ANON_KEY}" \
+            -H "apikey: ${ANON_KEY}" \
+            -d "{\"secret\":\"${CRON_SECRET}\"}")
+
+          echo "HTTP status: $http_code"
+          echo "Response body:"
+          cat "$http_response"
+          echo ""
+
+          if [ "$http_code" -ge 400 ]; then
+            echo "Request failed."
+            exit 1
+          fi
