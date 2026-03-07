@@ -1,45 +1,29 @@
-name: Test EconPulse AI Agent
+- name: Test econpulse-ai-agent
+  env:
+    PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    CRON_SECRET: ${{ secrets.ECONPULSE_CRON_SECRET }}
+    ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+  run: |
+    set -euo pipefail
 
-on:
-  workflow_dispatch:
+    echo "Testing econpulse-ai-agent..."
 
-jobs:
-  test-edge-function:
-    runs-on: ubuntu-latest
+    http_response=$(mktemp)
 
-    steps:
-      - name: Call econpulse-ai-agent with Supabase auth and body secret
-        run: |
-          echo "Testing econpulse-ai-agent..."
+    http_code=$(curl -sS -o "$http_response" -w "%{http_code}" -X POST "https://${PROJECT_REF}.functions.supabase.co/econpulse-ai-agent" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${ANON_KEY}" \
+      -H "apikey: ${ANON_KEY}" \
+      -d "{
+        \"secret\": \"${CRON_SECRET}\"
+      }")
 
-          http_response=$(mktemp)
+    echo "HTTP status: $http_code"
+    echo "Response body:"
+    cat "$http_response"
+    echo ""
 
-          http_code=$(curl -sS -o "$http_response" -w "%{http_code}" -X POST "https://vevebvrssinajsmijpoy.functions.supabase.co/econpulse-ai-agent" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -d '{
-              "secret": "${{ secrets.ECONPULSE_CRON_SECRET }}",
-              "smoke": true,
-              "sources": [
-                {
-                  "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
-                  "limit": 3
-                },
-                {
-                  "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
-                  "limit": 3
-                }
-              ],
-              "model": "gpt2"
-            }')
-
-          echo "HTTP status: $http_code"
-          echo "Response body:"
-          cat "$http_response"
-          echo ""
-
-          if [ "$http_code" -ge 400 ]; then
-            echo "Request failed."
-            exit 1
-          fi
+    if [ "$http_code" -ge 400 ]; then
+      echo "Request failed."
+      exit 1
+    fi
